@@ -1,0 +1,8 @@
+﻿use NHAKHOA
+go
+
+--TRAN 2
+EXEC SP_VIEW_THUOC 'TH01'
+
+--fix
+EXEC SP_VIEW_THUOC_FIX 'TH01'

@@ -1,0 +1,70 @@
+﻿use NHAKHOA
+go
+
+CREATE OR ALTER PROC SP_INSERT_NHANSU
+    @IDNhanSu VARCHAR(5) = NULL,
+    @HOTEN NVARCHAR(30),
+	@SDT VARCHAR(11),
+    @DIACHI NVARCHAR(100),
+    @LOAINHANSU VARCHAR(10),
+    @MATKHAU VARCHAR(16),
+	@IDQUANTRIVIEN VARCHAR(10)
+AS BEGIN TRAN
+	IF EXISTS (SELECT * FROM NhanSu WHERE SDT = @SDT) 
+	BEGIN
+        RAISERROR('Nhan su da ton tai', 16, 1)
+        ROLLBACK TRAN
+        RETURN -1
+    END
+
+	IF @LOAINHANSU != 'AD' AND @LOAINHANSU != 'NS' AND @LOAINHANSU != 'NV'
+	BEGIN
+        RAISERROR('LOAI NHAN SU KHONG HOP LE', 16, 1)
+        ROLLBACK TRAN
+        RETURN -1
+    END
+
+	IF @IDQUANTRIVIEN != NULL AND LEFT(@IDQUANTRIVIEN, 2) != 'AD' 
+	BEGIN
+        RAISERROR('NGUOI QUAN LY MUST BE AN ADMIN', 16, 1)
+        ROLLBACK TRAN
+        RETURN -1
+    END
+
+    SELECT @IDNhanSu = IDNhanSu FROM NHANSU
+    WHERE IDNhanSu = (SELECT MAX(IDNhanSu) 
+					  FROM NHANSU
+					  WHERE IDNhanSu LIKE @LOAINHANSU + '%')
+
+    SET @IDNhanSu = dbo.F_GenerateID(@LOAINHANSU, @IDNhanSu)
+
+    INSERT INTO NHANSU
+    VALUES (@IDNhanSu, @HOTEN, @SDT, @DIACHI, @LOAINHANSU, @MATKHAU, @IDQUANTRIVIEN)
+COMMIT TRAN
+RETURN 0
+GO
+
+
+--ADMIN
+EXEC SP_INSERT_NHANSU
+ null, N'Huỳnh Sơn Hà', '04215758216', N'830, Đoàn Văn Bơ, phường 16, quận 4, TP.HCM', 'AD', '123', NULL
+EXEC SP_INSERT_NHANSU
+ null, N'Lê Văn Dương', '01234567890', N'123,456 Nguyễn Văn Cừ', 'AD', '123', NULL
+
+
+--NHA SĨ
+EXEC SP_INSERT_NHANSU
+ NULL, N'Lê Hoàng Đức', '51243760942', N'741, Lê Lợi, phường 4, quận 1, TP.HCM', 'NS', '123', NULL
+ EXEC SP_INSERT_NHANSU
+ NULL, N'Nguyễn Đình Huy', '02804003805', N'52 Phố Chưởng, phường 2, quận 1, TP.HCM', 'NS', '123', NULL
+  EXEC SP_INSERT_NHANSU
+ NULL, N'Lê Hoàng Phúc', '04215786127', N'951 Nguyễn Du, phường 5, quận 3, TP.HCM', 'NS', '123', NULL
+
+ --NHÂN VIÊN
+EXEC SP_INSERT_NHANSU
+ NULL, N'Trần Thái Toàn', '34215879451', N'124, An Dương Vương, phường 3, quận 4, TP.HCM', 'NV', '123', NULL
+
+
+ SELECT *
+ FROM NhanSu
+ --delete from NhanSu where IDNhanSu = 'NS03' 
